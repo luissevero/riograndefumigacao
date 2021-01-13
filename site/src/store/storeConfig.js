@@ -23,17 +23,8 @@ const reducers = combineReducers({
     servidor: servidorReducer
 })
 
-//const persistedReducer = persistReducer(persistConfig, userReducer, produtosReducer, empresaReducer, pesquisaReducer, classificadoReducer)
 const persistedReducer = persistReducer(persistConfig, reducers)
-/*
-const storeConfig = () => {
-    return createStore(reducers)
-}
-*/
-
 const storeConfig = createStore(persistedReducer)
-
 const persistor = persistStore(storeConfig)
-
 
 export {storeConfig, persistor}

@@ -8,6 +8,8 @@ import {connect} from 'react-redux'
 import {login} from '../../store/actions/user'
 import { setserver } from '../../store/actions/server'
 import {api, apiLocal, onlineUrl, localUrl} from '../../services/api'
+import {apiEmployee} from '../../services/apirgfumiga'
+import md5 from 'md5'
 
 const estadoInicial = {
     login: 'rgfumigacao',
@@ -37,17 +39,18 @@ class Login extends Component {
         }).then(
             async res => {
                 const sanha = res.data.senha
+            */
                 await apiEmployee.post(`login.php`, {
                     username: this.state.login,
-                    password: sanha,
+                    password: md5(this.state.senha),
                 }).then(
                     async res2 => {
                         await this.setState({token: res2.data})
                     }
                 )
                 
-            } 
-        )
+             
+        
         if(this.state.token == 'false'){
             alert("Falha no acesso!")
         }else{
@@ -55,10 +58,10 @@ class Login extends Component {
             await this.props.onLogin({...this.state}) 
             this.setState({redirect: true})
         }
-        */
-         /*       
         
-        */
+                
+        
+        /*
         
         try{
             await api.post(`signin`, {
@@ -102,7 +105,7 @@ class Login extends Component {
         }catch(e){
             alert(e)
         }
-           
+         */  
     }
 
 
@@ -115,12 +118,12 @@ class Login extends Component {
          const validForm = validations.reduce((t, a) => t && a)
 
         return (
-            <section className="latest-products spad">
+            <section >
                 {this.state.redirect &&
                     <Redirect to={'/admin/inicio'} />
                 }
-                <div className="container">
-                    <div className="product-filter">
+                <div>
+                    
                         <div className="row">
                             <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">
                                 <img src={Logo} />
@@ -129,7 +132,7 @@ class Login extends Component {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    
                     <div id="contender">
 
                         <Formik 

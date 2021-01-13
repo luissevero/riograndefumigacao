@@ -3,6 +3,34 @@
 }
 
 .itemLista {
-	border-top: black solid .1em;
-	margin-bottom: .5em;
+	
+	margin-bottom: .1em;
+}
+
+.par {
+	background-color: #17386a !important;
+	height: 2.5em !important;
+	margin-bottom: 0.3em;
+}
+
+.par p{
+	color: white !important;
+}
+
+.par h6{
+	color: white !important;
+}
+
+.impar {
+	background-color: white !important;
+	height: 2.5em !important;
+	margin-bottom: 0.3em;
+}
+
+.impar p{
+	color: #17386a !important;
+}
+
+.impar h6{
+	color: #17386a !important;
 }

@@ -17,13 +17,8 @@ class Inicio extends Component {
 
     componentDidMount(){
         this.verificaLogado()
-        if(this.props.online){
-            alert(onlineUrl)
-        }else{
-            alert(localUrl)
-        }
     }
-
+    
     verificaLogado = async () => {
         await apiEmployee.get(`app.php`, {
             token: this.props.token
@@ -39,7 +34,31 @@ class Inicio extends Component {
         )
         await this.setState({loading: false}) 
     }
-
+    /*
+   verificaLogado = async () => {
+       if(this.props.online){
+            await api.get(`ships`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            }).then(
+                async response => {alert('ok')},
+                async response => { this.erroApi(response)}
+            )
+            
+       }else{
+            await apiLocal.get(`ships`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            }).then(
+                async response => {console.log('ok')},
+                async response => { this.erroApi(response)}
+            )
+       } 
+       await this.setState({loading: false})
+    }
+    */
     erroApi = async (res) => {
         await this.setState({isLogado: false})
         alert('Você precisa estar logado para poder acessar esta página!')
@@ -70,6 +89,7 @@ class Inicio extends Component {
                             <Link className="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 text-center" to={{pathname: `/admin/seaports`}}><li id="itemMenu">Seaports</li></Link>
                             <Link className="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 text-center" to={{pathname: `/admin/employees`}}><li id="itemMenu">{EMPLOYEES}</li></Link>
                             <Link className="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 text-center" to={{pathname: `/admin/clients`}}><li id="itemMenu">{CLIENTES}</li></Link>
+                            <Link className="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 text-center" to={{pathname: `/admin/storage`}}><li id="itemMenu">Storage</li></Link>
                             <Link className="col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6 text-center" to={{pathname: `/admin/painelfumigacao`}}><li id="itemMenu">Painel Fumigação</li></Link>
                             </ul>
                         </div>

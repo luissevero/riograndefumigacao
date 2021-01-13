@@ -15,7 +15,8 @@ const estadoInicial = {
     password: '',
     confirmPassword: '',
     id: null,
-    redirect: false
+    redirect: false,
+    employee: []
 }
 
 class AddEmployee extends Component {
@@ -27,19 +28,14 @@ class AddEmployee extends Component {
     componentDidMount = async () => {
         window.scrollTo(0, 0)
         var id = await this.props.match.params.id
+        await this.setState({employee: this.props.location.state.employee, token: this.props.token})
         await this.setState({id})
-        await this.loadData(id)
+        //alert(JSON.stringify(this.state.employee))
+        await this.loadData(this.state.employee)
     }
 
     loadData = async (produto) => {
-        await api.get(`employees/${produto}` , {
-            headers: {
-                "Authorization": `bearer ${this.props.token}`
-            }
-        }).then(
-            response => { this.setState({name: response.data.name}) },
-            response => { this.erroApi(response) }
-        )
+        await this.setState({username: produto.username, name: produto.name, email: produto.email, phone: produto.phone})
     }
 
     carregaEmployees = async () => {

@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import './styles.css'
 import {Formik, Field, Form, isInteger} from 'formik'
-import {api} from '../../services/api'
+import {api, apiLocal} from '../../services/api'
 import Header from '../../components/header'
 import axios from 'axios'
 import {server, showError} from '../../common'

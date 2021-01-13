@@ -20,14 +20,39 @@ module.exports = app => {
     const getPesquisaShips = (req, res) => {
         const pesquisa = req.params.pesquisa
         const seaport = req.params.seaport
-        if(seaport == 0){
-            seaport = '' 
-        } 
-        app.db('ships')
-            .where('name', 'like', '%' + pesquisa + '%')
-            .where('id_seaport', '=', seaport)        
-            .then(ships => res.json(ships))
-            .catch(err => res.status(500).json(err))
+        const status = req.params.status
+        //if(seaport == 0){
+       //     seaport = '' 
+        //}
+        if(seaport != 0){
+            if(status == 'all'){
+                app.db('ships')
+                    .where('name', 'like', '%' + pesquisa + '%')
+                    .where('id_seaport', '=', seaport)    
+                    .then(ships => res.json(ships))
+                    .catch(err => res.status(500).json(err))
+            }else{
+                app.db('ships')
+                    .where('name', 'like', '%' + pesquisa + '%')
+                    .where('id_seaport', '=', seaport)
+                    .where('status', '=', status)   
+                    .then(ships => res.json(ships))
+                    .catch(err => res.status(500).json(err))
+            }
+        }else{
+            if(status == 'all'){
+                app.db('ships')
+                    .where('name', 'like', '%' + pesquisa + '%')  
+                    .then(ships => res.json(ships))
+                    .catch(err => res.status(500).json(err))
+            }else{
+                app.db('ships')
+                    .where('name', 'like', '%' + pesquisa + '%')
+                    .where('status', 'like', '%' + status + '%')   
+                    .then(ships => res.json(ships))
+                    .catch(err => res.status(500).json(err))
+            }
+        }
     }
 
     const getShip = (req, res) => {
@@ -71,7 +96,35 @@ module.exports = app => {
         .then(_ => res.status(204).send())
     } 
 
-    return {getShips, getPesquisaShips, getShipsPainel, getShip, getClientShips, setShip}
+    const updateShip = (req, res) => {
+        app.db('ships')
+            .where('id', '=', req.params.id)
+            .first()
+            .update({
+                name: req.body.ship_name,
+                seaport_orig: req.body.seaport_origin,
+                id_seaport: req.body.id_seaport,
+                seaport_dest: req.body.seaport_destiny,
+                terminal: req.body.terminal,
+                agent: req.body.agent,
+                eta: req.body.eta,
+                etb: req.body.etb,
+                ets: req.body.ets,
+                type: req.body.type,
+                dosage: req.body.dosage,
+                full_shipment: req.body.full_shipment,
+                shipment: req.body.shipment,
+                cargo: req.body.cargo,
+                doomed: req.body.doomed,
+                recirculation: req.body.recirculation,
+                status: req.body.status
+            })
+            .then(_ => res.status(204).send())
+            .catch(err => res.status(500).json(err))
+
+    }
+
+    return {getShips, getPesquisaShips, getShipsPainel, getShip, getClientShips, setShip, updateShip}
 }
 
 /*

@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import './styles.css'
-import {api} from '../../services/api'
+import {api, apiLocal} from '../../services/api'
 import {apiEmployee} from '../../services/apirgfumiga'
 import Header from '../../components/header'
 import Skeleton from '../../components/skeleton'
@@ -25,21 +25,34 @@ class Seaports extends Component {
         this.getSeaports()
     }
 
-    
+    /*
     getSeaports = async () => {
-        await api.get(`seaports`, {
-            headers: {
-                "Authorization": `bearer ${this.props.token}`
-            }
-        }).then(
-            response => {this.setState({seaports: response.data})},
-            response => this.erroApi(response)
-        )
+        if(this.props.online){
+            await api.get(`seaports`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                response => {this.setState({seaports: response.data})},
+                response => this.erroApi(response)
+            )
+        }else{
+            await apiLocal.get(`seaports`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                response => {this.setState({seaports: response.data})},
+                response => this.erroApi(response)
+            )
+        }
         await this.setState({loading: false}) 
     }
-    
+    */
 
-    /*
+    
    getSeaports = async () => {
     await apiEmployee.post(`getSeaports.php`, {
         token: this.props.token
@@ -52,7 +65,7 @@ class Seaports extends Component {
     
         )
     }
-    */
+    
 
     erroApi = async () => {
         alert(PRECISA_LOGAR)
@@ -84,9 +97,7 @@ class Seaports extends Component {
                                 </div>
                             </div>
                         </div>
-
                     </div>
-
                 </section>
 
                 <div className="contact-section">
@@ -140,9 +151,10 @@ class Seaports extends Component {
     }
 }
 
-const mapStateToProps = ({user}) => {
+const mapStateToProps = ({user, servidor}) => {
     return{
-        token: user.token
+        token: user.token,
+        online: servidor.online
     }
 }
 

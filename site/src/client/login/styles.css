@@ -88,15 +88,23 @@
 	margin-bottom: 0;
 }
 
+.container{
+	margin-top: 15%;
+}
+
 #contender {
 	border-width: 1em;
-	width: 80%;
-	height: 80%;
-	margin: 10em;
+	margin-left: 15%;
+	margin-right: 15%;
 	border-color: blue;
 
 }
 
 #contender p {
 	font-size: xx-large;
+}
+
+#logoRGF{
+	margin-top: 5em;
+	margin-bottom: 5em;
 }

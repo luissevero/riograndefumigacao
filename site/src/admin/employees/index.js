@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import './styles.css'
-import {api} from '../../services/api'
+import {api, apiLocal} from '../../services/api'
+import {apiEmployee} from '../../services/apirgfumiga'
 import Header from '../../components/header'
 import Skeleton from '../../components/skeleton'
 
@@ -24,19 +25,45 @@ class Employees extends Component {
 
     componentDidMount = () => {
         this.getSeaports()
+        this.setState({loading: false})
     }
 
     getSeaports = async () => {
-        await api.get(`employees`, {
-            headers: {
-                "Authorization": `bearer ${this.props.token}`
-            }
-        }).then(
-            response => {this.setState({employees: response.data})}, 
-            response => this.erroApi(response)
+        await apiEmployee.post(`getEmployees.php`, {
+            token: this.props.token
+        })
+        .then(
+            async response => { await this.setState({employees: response.data})},
+            async response => {this.erroApi(response)}
         )
+    }
+
+    /*
+    getSeaports = async () => {
+        if(this.props.online){
+            await api.get(`employees`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                response => {this.setState({employees: response.data})}, 
+                response => this.erroApi(response)
+            )
+        }else{
+            await apiLocal.get(`employees`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                response => {this.setState({employees: response.data})}, 
+                response => this.erroApi(response)
+            )
+        }
         await this.setState({loading: false}) 
     }
+    */
 
     erroApi = async () => {
         alert(PRECISA_LOGAR)
@@ -104,7 +131,10 @@ class Employees extends Component {
                                 <div className="single-product-item">
                                     <div className="row">
                                         <div className="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4 text-right">
-                                            <Link to={{pathname: `/admin/addemployee/${feed.id}`, state: feed.id}}>
+                                            <Link to={{
+                                                pathname: `/admin/addemployee/${feed.id}`, 
+                                                state: {employee:{...feed}}
+                                            }}>
                                                 <p>{feed.id}</p>
                                             </Link>
                                         </div>
@@ -124,9 +154,10 @@ class Employees extends Component {
     }
 }
 
-const mapStateToProps = ({user}) => {
+const mapStateToProps = ({user, servidor}) => {
     return{
-        token: user.token
+        token: user.token,
+        online: servidor.online
     }
 }
 

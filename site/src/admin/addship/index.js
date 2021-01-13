@@ -2,7 +2,8 @@ import React, {Component} from 'react'
 import './styles.css'
 import {Formik, Field, Form, isInteger} from 'formik'
 import Logo from '../../img/logos/rgf.png'
-import {api} from '../../services/api'
+import {api, apiLocal} from '../../services/api'
+import {apiEmployee} from '../../services/apirgfumiga'
 import Header from '../../components/header'
 import {connect} from 'react-redux'
 import {Redirect, Link} from 'react-router-dom'
@@ -12,6 +13,7 @@ import Util from '../../classes/util'
 
 const estadoInicial = {
     seaports: [],
+    ship: [],
     ship_name: '',
     seaport_origin: undefined,
     id_seaport: undefined,
@@ -31,7 +33,8 @@ const estadoInicial = {
     recirculation: false,
     status: '',
     id: null,
-    redirect: false
+    redirect: false,
+    token: ''
 }
 
 class AddShip extends Component {
@@ -43,64 +46,219 @@ class AddShip extends Component {
     componentDidMount = async () => {
         window.scrollTo(0, 0)
         var id = this.props.match.params.id
+        //alert(JSON.stringify(this.props.location.state.ship))
+        await this.setState({token: this.props.token, ship: this.props.location.state.ship})
         await this.setState({id})
-        await this.loadData(id)
-        this.carregaPortos()
+        await this.loadData(this.props.location.state.ship)
+        await this.carregaSeaports()
+        //alert(JSON.stringify(this.state.ship))
     }
 
-    carregaPortos = async () => {
-        await api.get(`seaports`, {
-            headers: {
-                "Authorization": `bearer ${this.props.token}`
-            }
-        }).then(
-            response => {this.setState({seaports: response.data})},
-            response => this.erroApi(response)
-            ) 
-    }
-
-    loadData = async (produto) => {
-        try{
-            await api.get(`ships/${produto}`, {
-                headers: {
-                    "Authorization": `bearer ${this.props.token}`
-                }
-            }).then(async res => {
-                await this.setState({ship_name: res.data.name, id_seaport: res.data.id_seaport, terminal: res.data.terminal, eta: Util.formataData(res.data.ETA), etb: Util.formataData(res.data.ETB), ets: Util.formataData(res.data.ETS), type: res.data.type, dosage: res.data.dosage, full_shipment: res.data.full_shipment, shipment: res.data.shipment, cargo: res.data.cargo, doomed: res.data.doomed, recirculation: res.data.recirculation, status: res.data.status})
-            })
-
+    carregaSeaports = async () => {
+        try{          
+            await apiEmployee.post(`getSeaports.php`, {
+                token: this.state.token
+            }).then(
+                async res => {
+                     if(res.data == 'false'){
+                         alert('Usuário não logado!')
+                     }else{
+                         await this.setState({seaports: res.data})                        
+                     }
+                 },
+                async res => alert(res.data) 
+            )
         }catch(e){
             alert(e)
         }
     }
 
-    inserirNavio = async () => {
-        await api.post(`ships`, {
-            ship_name: this.state.ship_name,
-            seaport_origin: this.state.seaport_origin,
-            id_seaport: this.state.id_seaport,
-            seaport_destiny: this.state.seaport_destiny,
-            terminal: this.state.terminal,
-            agent: this.state.agent,
-            eta: this.state.eta,
-            etb: this.state.etb,
-            ets: this.state.ets,
-            type: this.state.type,
-            dosage: this.state.dosage,
-            full_shipment: this.state.full_shipment,
-            shipment: this.state.shipment,
-            cargo: this.state.cargo,
-            doomed: this.state.doomed,
-            recirculation: this.state.recirculation,
-            status: this.state.status
-        }).then(response => {
-            if(response.status === 204){
-                alert("Cadastro realizado corretamente!")
-            }else{
-                alert("Erro no cadastro! Tente novamente!")
-            }
-        })
+    /*
+    carregaPortos = async () => {
+        if(this.props.online){
+            await api.get(`seaports`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                response => {this.setState({seaports: response.data})},
+                response => this.erroApi(response)
+            )
+        }else{
+            await apiLocal.get(`seaports`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                response => {this.setState({seaports: response.data})},
+                response => this.erroApi(response)
+            )
+        } 
     }
+    */
+
+    /*
+    loadData = async (produto) => {
+        try{
+            if(this.props.online){
+                await api.get(`ships/${produto}`, {
+                    headers: {
+                        "Authorization": `bearer ${this.props.token}`
+                    }
+                }).then(async res => {
+                    await this.setState({seaport_origin: res.data.seaport_orig, seaport_destiny: res.data.seaport_dest, ship_name: res.data.name, id_seaport: res.data.id_seaport, terminal: res.data.terminal, eta: Util.formataData(res.data.ETA), etb: Util.formataData(res.data.ETB), ets: Util.formataData(res.data.ETS), type: res.data.type, dosage: res.data.dosage, full_shipment: res.data.full_shipment, shipment: res.data.shipment, cargo: res.data.cargo, doomed: res.data.doomed, recirculation: res.data.recirculation, status: res.data.status})
+                })
+            }else{
+                await apiLocal.get(`ships/${produto}`, {
+                    headers: {
+                        "Authorization": `bearer ${this.props.token}`
+                    }
+                }).then(async res => {
+                    await this.setState({seaport_origin: res.data.seaport_orig, seaport_destiny: res.data.seaport_dest, ship_name: res.data.name, id_seaport: res.data.id_seaport, terminal: res.data.terminal, eta: Util.formataData(res.data.ETA), etb: Util.formataData(res.data.ETB), ets: Util.formataData(res.data.ETS), type: res.data.type, dosage: res.data.dosage, full_shipment: res.data.full_shipment, shipment: res.data.shipment, cargo: res.data.cargo, doomed: res.data.doomed, recirculation: res.data.recirculation, status: res.data.status})
+                })
+            }
+
+        }catch(e){
+            alert(e)
+        }
+    }
+    */
+   loadData = async(produto) => {
+    await this.setState({seaport_origin: produto.seaport_orig, seaport_destiny: produto.seaport_dest, ship_name: produto.name, id_seaport: produto.id_seaport, terminal: produto.terminal, eta: Util.formataData(produto.ETA), etb: Util.formataData(produto.ETB), ets: Util.formataData(produto.ETS), type: produto.type, dosage: produto.dosage, full_shipment: produto.full_shipment, shipment: produto.shipment, cargo: produto.cargo, doomed: produto.doomed, recirculation: produto.recirculation, status: produto.status})
+   }
+
+   /*
+    inserirNavio = async () => {
+        if(this.state.id == 0){
+            if(this.props.online){
+                await api.post(`ships`, {
+                    ship_name: this.state.ship_name,
+                    seaport_origin: this.state.seaport_origin,
+                    id_seaport: this.state.id_seaport,
+                    seaport_destiny: this.state.seaport_destiny,
+                    terminal: this.state.terminal,
+                    agent: this.state.agent,
+                    eta: this.state.eta,
+                    etb: this.state.etb,
+                    ets: this.state.ets,
+                    type: this.state.type,
+                    dosage: this.state.dosage,
+                    full_shipment: this.state.full_shipment,
+                    shipment: this.state.shipment,
+                    cargo: this.state.cargo,
+                    doomed: this.state.doomed,
+                    recirculation: this.state.recirculation,
+                    status: this.state.status
+                }, {
+                    headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                    }
+                }).then(response => {
+                    if(response.status === 204){
+                        alert("Cadastro realizado corretamente!")
+                    }else{
+                        alert("Erro no cadastro! Tente novamente!")
+                    }
+                })
+            }else{
+                await apiLocal.post(`ships`, {
+                    ship_name: this.state.ship_name,
+                    seaport_origin: this.state.seaport_origin,
+                    id_seaport: this.state.id_seaport,
+                    seaport_destiny: this.state.seaport_destiny,
+                    terminal: this.state.terminal,
+                    agent: this.state.agent,
+                    eta: this.state.eta,
+                    etb: this.state.etb,
+                    ets: this.state.ets,
+                    type: this.state.type,
+                    dosage: this.state.dosage,
+                    full_shipment: this.state.full_shipment,
+                    shipment: this.state.shipment,
+                    cargo: this.state.cargo,
+                    doomed: this.state.doomed,
+                    recirculation: this.state.recirculation,
+                    status: this.state.status
+                }, {
+                    headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                    }
+                }).then(response => {
+                    if(response.status === 204){
+                        alert("Cadastro realizado corretamente!")
+                    }else{
+                        alert("Erro no cadastro! Tente novamente!")
+                    }
+                })
+            }
+        }else{
+            if(this.props.online){
+                await api.put(`ships/${this.state.id}`, {
+                    ship_name: this.state.ship_name,
+                    seaport_origin: this.state.seaport_origin,
+                    id_seaport: this.state.id_seaport,
+                    seaport_destiny: this.state.seaport_destiny,
+                    terminal: this.state.terminal,
+                    agent: this.state.agent,
+                    eta: this.state.eta,
+                    etb: this.state.etb,
+                    ets: this.state.ets,
+                    type: this.state.type,
+                    dosage: this.state.dosage,
+                    full_shipment: this.state.full_shipment,
+                    shipment: this.state.shipment,
+                    cargo: this.state.cargo,
+                    doomed: this.state.doomed,
+                    recirculation: this.state.recirculation,
+                    status: this.state.status
+                }, {
+                    headers: {
+                        "Authorization": `bearer ${this.props.token}`
+                    }
+                }).then(response => {
+                    if(response.status === 204){
+                        alert('Cadastro atualizado!')
+                    }else{
+                        alert("Erro na atualização! Tente novamente!")
+                    }
+                })
+            }else{
+                await apiLocal.put(`ships/${this.state.id}`, {
+                    ship_name: this.state.ship_name,
+                    seaport_origin: this.state.seaport_origin,
+                    id_seaport: this.state.id_seaport,
+                    seaport_destiny: this.state.seaport_destiny,
+                    terminal: this.state.terminal,
+                    agent: this.state.agent,
+                    eta: this.state.eta,
+                    etb: this.state.etb,
+                    ets: this.state.ets,
+                    type: this.state.type,
+                    dosage: this.state.dosage,
+                    full_shipment: this.state.full_shipment,
+                    shipment: this.state.shipment,
+                    cargo: this.state.cargo,
+                    doomed: this.state.doomed,
+                    recirculation: this.state.recirculation,
+                    status: this.state.status
+                }, {
+                    headers: {
+                        "Authorization": `bearer ${this.props.token}`
+                    }
+                }
+                ).then(response => {
+                    if(response.status === 204){
+                        alert('Cadastro atualizado!')
+                    }else{
+                        alert("Erro na atualização! Tente novamente!")
+                    }
+                })
+            }
+        }
+    }
+    */
 
     erroApi = async (res) => {
         alert(PRECISA_LOGAR)
@@ -108,6 +266,7 @@ class AddShip extends Component {
     }
 
     render(){
+        
         const validations = []
         validations.push(this.state.ship_name && this.state.ship_name.trim().length >= 3)
         validations.push(this.state.seaport_destiny && this.state.seaport_destiny.trim().length >= 4)
@@ -116,13 +275,14 @@ class AddShip extends Component {
         validations.push(this.state.etb && this.state.etb.trim().length >= 8)
         validations.push(this.state.ets && this.state.ets.trim().length >= 8)
         validations.push(Math.ceil(this.state.full_shipment) >=  Math.ceil(this.state.shipment))
+        
         //o formulário só será válido se todas as validações forem verdadeiras, com este reduce implementado
         const validForm = validations.reduce((t, a) => t && a)
         
         return (
             <div>
                 
-                <section className="page-add">
+                
                     <Header voltarShips/>
                     {this.state.redirect &&
                         <Redirect to={'/admin'} />
@@ -136,7 +296,12 @@ class AddShip extends Component {
                             </div>
                             {this.state.id > 0 &&
                             <div className="col-lg-12 text-right">
-                                <Link to={{pathname: `/admin/fumigationreport/${this.state.id}`}} target="blank" >
+                                <Link 
+                                    to={{
+                                        pathname: `/admin/fumigationreport/${this.state.id}`,
+                                        state: {ship: this.state.ship}
+                                    }} 
+                                >
                                     <button className="btn btn-secondary">Gerar Relatório de Fumigação</button>
                                 </Link>
                             </div>
@@ -145,7 +310,7 @@ class AddShip extends Component {
 
                     </div>
 
-                </section>
+                
 
                 <div className="contact-section">
                     <div className="container">
@@ -181,12 +346,29 @@ class AddShip extends Component {
                                         <div className="col-lg-12 text-right">
                                             <Field value={this.state.ship_name} onChange={e => { this.setState({ship_name: e.currentTarget.value})}} id="ship_name" name="ship_name" type="text" placeholder="Ship name" />
                                         </div>
-                                        <div className="col-lg-12 text-right">
-                                            <Field value={this.state.terminal} onChange={e => { this.setState({terminal: e.currentTarget.value})}} id="terminal" name="terminal" type="text" placeholder="Terminal" />
-                                        </div>
                                     </div>
 
                                     <div className="row">
+                                        
+                                        <div className="col-12">
+                                            <h2 className="subTitulo">Loading Process</h2>
+                                        </div>
+
+                                        <div className="col-12 text-left">
+                                            <Field value={this.state.cargo} onChange={e => { this.setState({cargo: e.currentTarget.value})}} name="cargo" id="cargo" type="text" placeholder="Cargo" />
+                                        </div>
+
+                                        <div className="col-6 text-left">
+                                            <Field value={this.state.full_shipment} onChange={e => { this.setState({full_shipment: e.currentTarget.value})}} name="full_shipment" id="full_shipment" type="number" placeholder="Full Shipment" />
+                                        </div>
+                                        <div className="col-6 text-left">
+                                            <Field value={this.state.shipment} onChange={e => { this.setState({shipment: e.currentTarget.value})}} name="shipment" id="shipment" type="number" placeholder="Shipment" />
+                                        </div>
+
+                                        <div className="col-12">
+                                            <h2 className="subTitulo">Information</h2>
+                                        </div>
+
                                         <div className="col-lg-1 text-left">
                                             <label htmlFor="seaport_origin">Seaport Origin</label>
                                         </div>
@@ -220,6 +402,9 @@ class AddShip extends Component {
                                             </Field>
                                         </div>
                                         <div className="col-lg-12 text-right">
+                                            <Field value={this.state.terminal} onChange={e => { this.setState({terminal: e.currentTarget.value})}} id="terminal" name="terminal" type="text" placeholder="Terminal" />
+                                        </div>
+                                        <div className="col-lg-12 text-right">
                                             <Field value={this.state.agent} onChange={e => { this.setState({agent: e.currentTarget.value})}} id="agent" name="agent" type="text" placeholder="Agent" />
                                         </div>
                                     </div>
@@ -246,6 +431,24 @@ class AddShip extends Component {
                                         <div className="col-lg-3 text-left">
                                             <Field value={this.state.ets} onChange={e => { this.setState({ets: e.currentTarget.value})}} id="ets" name="ets" type="date" placeholder="ETS" />
                                         </div>
+                                        <div className="col-1 text-left">
+                                            <label htmlFor="doomed" className="form-check-label">Doomed</label>
+                                        </div>
+                                        <div className="col-5 text-left">
+                                            <Field  onClick={async (e) => { await this.setState({doomed: !this.state.doomed}) } } checked={this.state.doomed} name="doomed" id="doomed" type="checkbox" />
+                                        </div>
+                                        <div className="col-1 text-right">
+                                            <label htmlFor="recirculation" className="form-check-label">Recirculation</label>
+                                        </div>
+                                        <div className="col-5 text-right">
+                                            <Field  onClick={async (e) => { await this.setState({recirculation: !this.state.recirculation}) } } checked={this.state.recirculation} name="recirculation" id="recirculation" type="checkbox" />
+                                        </div>
+                                    </div>
+
+                                    <div className="row">
+                                        <div className="col-12">
+                                            <h2 className="subTitulo">Fumigation</h2>
+                                        </div>
                                     </div>
 
                                     <div className="row">
@@ -256,34 +459,17 @@ class AddShip extends Component {
                                         <div className="col-lg-6 text-right">
                                             <Field value={this.state.dosage} onChange={e => {this.setState({dosage: e.currentTarget.value})}} name="dosage" id="dosage" type="number" placeholder="Dosage" />
                                         </div>
-                                        <div className="col-lg-6 text-right">
-                                            <Field value={this.state.full_shipment} onChange={e => { this.setState({full_shipment: e.currentTarget.value})}} name="full_shipment" id="full_shipment" type="number" placeholder="Full Shipment" />
-                                        </div>
-                                        <div className="col-lg-6 text-right">
-                                            <Field value={this.state.shipment} onChange={e => { this.setState({shipment: e.currentTarget.value})}} name="shipment" id="shipment" type="number" placeholder="Shipment" />
-                                        </div>
+                                        
                                     </div>
                                     
                                     <div className="row">
-                                        <div className="col-lg-6 text-right">
-                                            <Field value={this.state.cargo} onChange={e => { this.setState({cargo: e.currentTarget.value})}} name="cargo" id="cargo" type="text" placeholder="Cargo" />
-                                        </div>
+                                        
 
-                                        <div className="col-lg-1 text-left">
-                                            <label htmlFor="doomed" className="form-check-label">Doomed</label>
-                                        </div>
-                                        <div className="col-lg-5">
-                                            <Field  onClick={async (e) => { await this.setState({doomed: !this.state.doomed}) } } checked={this.state.doomed} name="doomed" id="doomed" type="checkbox" />
-                                        </div>
+                                        
                                         <div className="col-lg-6 text-right">
                                             <Field value={this.state.status} onChange={e => { this.setState({status: e.currentTarget.value})}} name="status" id="status" type="text" placeholder="Status" />
                                         </div>
-                                        <div className="col-lg-1 text-left">
-                                            <label htmlFor="recirculation" className="form-check-label">Recirculation</label>
-                                        </div>
-                                        <div className="col-lg-5">
-                                            <Field  onClick={async (e) => { await this.setState({recirculation: !this.state.recirculation}) } } checked={this.state.recirculation} name="recirculation" id="recirculation" type="checkbox" />
-                                        </div>
+                                        
                                         <div className="col-lg-12 text-right">
                                             <button disabled={!validForm} type="submit" style={validForm ? {} : {backgroundColor: '#eee', opacity: 0.3} } >Salvar</button>
                                         </div>
@@ -325,9 +511,10 @@ class AddShip extends Component {
     }
 }
 
-const mapStateToProps = ({user}) => {
+const mapStateToProps = ({user, servidor}) => {
     return{
-        token: user.token
+        token: user.token,
+        online: servidor.online
     }
 }
 

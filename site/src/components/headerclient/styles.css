@@ -2,7 +2,7 @@
     width: 100%;
     max-width: 1180px;
     padding: 0 30px;
-    margin: 16px auto;
+    margin: 32px auto;
 }
 
 .header-icones ul{
@@ -194,9 +194,5 @@
 
 .slicknav_menu {
 	display: none;
-}
-
-.headerContainer {
-	margin-top: 1em;
 }
 

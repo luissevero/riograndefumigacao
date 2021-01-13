@@ -13,7 +13,7 @@ module.exports = app => {
         .get(app.api.ships.getShips)
         .post(app.api.ships.setShip)
     
-    app.route('/pesquisaships/:pesquisa/:seaport')
+    app.route('/pesquisaships/:pesquisa/:seaport/:status')
         .get(app.api.ships.getPesquisaShips)
 
     app.route('/shipspainel')
@@ -22,6 +22,7 @@ module.exports = app => {
     app.route('/ships/:id')
         .all(app.config.passport.authenticate())
         .get(app.api.ships.getShip)
+        .put(app.api.ships.updateShip)
         
     app.route('/feed')
         .all(app.config.passport.authenticate())    

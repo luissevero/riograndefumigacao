@@ -10,10 +10,15 @@ import { Redirect } from 'react-router-dom'
 const estadoInicial = {
     name: '',
     id: null,
-    redirect: false
+    category: '',
+    amount: '',
+    unit: '',
+    redirect: false,
+    token: '',
+    storage: [],
 }
 
-class AddSeaport extends Component {
+class AddStorage extends Component {
     
     state = {
         ...estadoInicial
@@ -22,34 +27,14 @@ class AddSeaport extends Component {
     componentDidMount = async () => {
         window.scrollTo(0, 0)
         var id = await this.props.match.params.id
+        await this.setState({token: this.props.token, storage: this.props.location.state.storage})
         await this.setState({id})
-        await this.loadData(id)
+        await this.loadData(this.state.storage)
+        console.log(JSON.stringify(this.state.storage))
     }
 
     loadData = async (produto) => {
-        try{
-            if(this.props.online){
-                await api.get(`seaports/${produto}` , {
-                    headers: {
-                        "Authorization": `bearer ${this.props.token}`
-                    }
-                }).then(
-                    response => {this.setState({name: response.data.name})},
-                    response => this.erroApi(response)
-                )
-            }else{
-                await apiLocal.get(`seaports/${produto}` , {
-                    headers: {
-                        "Authorization": `bearer ${this.props.token}`
-                    }
-                }).then(
-                    response => {this.setState({name: response.data.name})},
-                    response => this.erroApi(response)
-                )
-            }
-        }catch(e){
-            alert(e)
-        }
+        await this.setState({unit: produto.unit})
     }
 
     salvarPorto = async () => {
@@ -149,12 +134,12 @@ class AddSeaport extends Component {
                     <Redirect to={'/admin'} />
                 }
                 <section className="page-add">
-                    <Header voltarSeaport/>
+                    <Header voltarStorage/>
                     <div className="container">
                         <div className="row">
                             <div className="col-lg-12">
                                 <div className="page-breadcrumb">
-                                    <h2 style={{marginBottom: '3%', marginTop: '3%'}}>{this.state.id == 0 ? 'Inserir novo porto' : 'Alterar porto'}</h2>
+                                    <h2 style={{marginBottom: '3%', marginTop: '3%'}}>{this.state.id == 0 ? 'Inserir novo storage' : 'Alterar storage'}</h2>
                                 </div>
                             </div>
                         </div>
@@ -209,4 +194,4 @@ const mapStateToProps = ({user, servidor}) => {
     }
 }
 
-export default connect(mapStateToProps, null)(AddSeaport)
+export default connect(mapStateToProps, null)(AddStorage)

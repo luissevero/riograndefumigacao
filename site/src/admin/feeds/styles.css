@@ -261,3 +261,29 @@
 	border-bottom: black solid .1em;
 	margin-bottom: .5em;
 }
+
+.par {
+	background-color: #17386a !important;
+	
+}
+
+.par p{
+	color: white !important;
+}
+
+.par h6{
+	color: white !important;
+}
+
+.impar {
+	background-color: white !important;
+	
+}
+
+.impar p{
+	color: #17386a !important;
+}
+
+.impar h6{
+	color: #17386a !important;
+}

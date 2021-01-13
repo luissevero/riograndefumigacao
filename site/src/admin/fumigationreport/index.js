@@ -1,12 +1,14 @@
 import React, {Component} from 'react'
+import ReactDOM from 'react-dom'
 import './styles.css'
 import {Formik, Field, Form, isInteger} from 'formik'
 import Logo from '../../img/logos/rgf.png'
-import {api} from '../../services/api'
+import {api ,apiLocal} from '../../services/api'
 import ReportField from '../../components/reportField'
 import {connect} from 'react-redux'
-import {Redirect} from 'react-router-dom'
+import {Redirect, Link} from 'react-router-dom'
 import {PRECISA_LOGAR} from '../../config' 
+import {Document, Page} from 'react-pdf'
 
 const estadoInicial = {
     seaports: [],
@@ -44,37 +46,37 @@ class FumigationReport extends Component {
         var id = this.props.match.params.id
         //alert(this.props.token)
         await this.setState({id})
-        await this.loadData(id)
-        await this.carregaFeeds(id)
+        //alert(JSON.stringify(this.props.location.state.ship))
+        await this.loadData(this.props.location.state.ship)
+        //await this.carregaFeeds(id)
     }
 
     carregaFeeds = async (id) => {
-        await api.get(`feedpership/${id}`, {
-            headers: {
-                "Authorization": `bearer ${this.props.token}`
-            }
-            
-        }).then(
-            response => {this.setState({feeds: response.data})},
-            response => this.erroApi(response)
-        ) 
-    }
-
-    loadData = async (produto) => {
-        try{
-            await api.get(`ships/${produto}`, {
+        if(this.props.online){
+            await api.get(`feedpership/${id}`, {
                 headers: {
                     "Authorization": `bearer ${this.props.token}`
                 }
+                
             }).then(
-                async res => {
-                    await this.setState({ship_name: res.data.name, id_seaport: res.data.id_seaport, seaport_origin: res.data.seaport_orig, seaport_destiny: res.data.seaport_dest, terminal: res.data.terminal, eta: res.data.eta, etb: res.data.etb, ets: res.data.ets, type: res.data.type, dosage: res.data.dosage, full_shipment: res.data.full_shipment, shipment: res.data.shipment, cargo: res.data.cargo, doomedBanco: res.data.doomed, recirculation: res.data.recirculation, status: res.data.status})
-                },
-                async response => await this.erroApi(response)
+                response => {this.setState({feeds: response.data})},
+                response => this.erroApi(response)
             )
-        }catch(e){
-            alert(e)
-        }
+        }else{
+            await apiLocal.get(`feedpership/${id}`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+                
+            }).then(
+                response => {this.setState({feeds: response.data})},
+                response => this.erroApi(response)
+            )
+        } 
+    }
+
+    loadData = async (produto) => {
+            await this.setState({ship_name: produto.name, id_seaport: produto.id_seaport, seaport_origin: produto.seaport_orig, seaport_destiny: produto.seaport_dest, terminal: produto.terminal, eta: produto.eta, etb: produto.etb, ets: produto.ets, type: produto.type, dosage: produto.dosage, full_shipment: produto.full_shipment, shipment: produto.shipment, cargo: produto.cargo, doomed: produto.doomed, recirculation: produto.recirculation, status: produto.status})
     }
 
     erroApi = async () => {
@@ -82,12 +84,25 @@ class FumigationReport extends Component {
         await this.setState({redirect: true})
     }
 
+    
     render(){
         return (
             <div>
                 {this.state.redirect &&
                     <Redirect to={'/admin'} />
                 }
+
+                <div className="row">
+                    <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">
+                        <Document>
+                            <Page>
+                                GENERAL INFORMATIONS
+                            </Page>
+                        </Document>
+                    </div>    
+                </div>
+
+                
                 <div className="row">
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">
                         <img className="img img-fluid" src={Logo} style={{alignItems: 'center', justifyContent: 'center'}}/>
@@ -126,7 +141,7 @@ class FumigationReport extends Component {
                                 <ReportField titulo="Total Loaded" subtitulo={this.state.shipment ? ((this.state.shipment / 1000).toFixed(3)).toLocaleString('en-US')+ ' MT' : ''}/>
                                 <ReportField titulo="Finish The Load"/>
                                 <ReportField titulo="Holds"/>
-                                <ReportField titulo="Condemned Cargo / MOA"/>
+                                <ReportField titulo="Condemned Cargo / MOA" subtitulo={this.state.doomed == 1 ? 'Yes' : 'No'}/>
        
                             </div>
                         </div>
@@ -134,13 +149,41 @@ class FumigationReport extends Component {
                 </div>
             </div>
         )
-        
     }
+    /*
+    render(){
+        
+        const MeuDocumento = () => (
+            <Document>
+                <Page size="A4" style={styles.page}>
+                    <View style={styles.section}>
+                        <Text>GENERAL INFORMATIONS</Text>
+                        <Text>Vessel: {this.state.ship_name}</Text>
+                        <Text>Grain: {this.state.cargo}</Text>
+                        <Text>Loading Port: {this.state.seaport_origin}</Text>
+                        <Text>Discharge Port: {this.state.seaport_destiny}</Text>
+                    </View>
+                    <View style={styles.section}>
+                        <Text>Condemned Cargo</Text>
+                    </View>
+                </Page>
+            </Document>
+        )
+        
+        return (
+            <PDFViewer>
+                <MeuDocumento />
+            </PDFViewer>
+        )   
+    }
+    */
 }
 
-const mapStateToProps = ({user}) => {
+
+const mapStateToProps = ({user, servidor}) => {
     return{
-        token: user.token
+        token: user.token,
+        online: servidor.online
     }
 }
 

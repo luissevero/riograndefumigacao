@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import './styles.css'
-import {api} from '../../services/api'
+import {api ,apiLocal} from '../../services/api'
 import {apiEmployee} from '../../services/apirgfumiga'
 import Header from '../../components/header'
 import Skeleton from '../../components/skeleton'
@@ -15,6 +15,8 @@ const estadoInicial = {
     redirect: false
 }
 
+const urlFoto = 'http://rgfumigacao.com.br/api/pictures/'
+
 class Clients extends Component {
     
     state = {
@@ -22,18 +24,32 @@ class Clients extends Component {
     }
 
     componentDidMount = () => {
-        this.getSeaports()
+        //this.getSeaports()
+        this.getClients()
     }
 
     getSeaports = async () => {
-        await api.get(`clients`, {
-            headers: {
-                "Authorization": `bearer ${this.props.token}`
-            }
-        }).then(
-            response => this.setState({clients: response.data}),
-            response => this.erroApi(response)
-        )
+        if(this.props.online){
+            await api.get(`clients`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                response => this.setState({clients: response.data}),
+                response => this.erroApi(response)
+            )
+        }else{
+            await apiLocal.get(`clients`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                response => this.setState({clients: response.data}),
+                response => this.erroApi(response)
+            )
+        }
         await this.setState({loading: false}) 
     }
 
@@ -118,7 +134,13 @@ class Clients extends Component {
                             <div key={feed.id} className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 all dresses bags">
                                 <div className="single-product-item">
                                     <div className="row">
-                                        <div className="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4 text-right">
+                                        <div className="col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1 text-right">
+                                            <img 
+                                                src={`${urlFoto}${feed.username}.png`}
+                                                className="img img-fluid thumbnail"
+                                            />
+                                        </div>
+                                        <div className="col-xl-5 col-lg-5 col-md-5 col-sm-5 col-5 text-right">
                                             <Link to={{pathname: `/admin/addclient/${feed.id}`, state: feed.id}}>
                                                 <p>{feed.id}</p>
                                             </Link>
@@ -139,9 +161,10 @@ class Clients extends Component {
     }
 }
 
-const mapStateToProps = ({user}) => {
+const mapStateToProps = ({user, servidor}) => {
     return{
-        token: user.token
+        token: user.token,
+        online: servidor.online
     }
 }
 

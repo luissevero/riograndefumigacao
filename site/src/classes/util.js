@@ -8,7 +8,7 @@ export default class Util {
     }
 
     static urlExists(chave){
-        return 'http://192.168.15.150/severo/anamodasreact/frontend/src/img/products/PD' + this.completarZerosEsquerda(chave, 6) + '.jpg'
+        return 'http://rgfumigacao.com.br/api/pictures/' + chave + '.png'
     }
 
     static formataData(data){

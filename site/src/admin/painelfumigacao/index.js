@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import './styles.css'
 
 import {apiClient, apiEmployee} from '../../services/apirgfumiga'
-import {api} from '../../services/api'
+import {api, apiLocal} from '../../services/api'
 import Header from '../../components/header'
 import Skeleton from '../../components/skeleton'
 import {Link, useHistory, Redirect} from 'react-router-dom'
@@ -11,7 +11,7 @@ import moment from 'moment'
 import {connect} from 'react-redux'
 import {PRECISA_LOGAR} from '../../config'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faArrowAltCircleLeft, faArrowAltCircleRight} from '@fortawesome/free-regular-svg-icons'
+import {faArrowAltCircleLeft, faArrowAltCircleRight, faPlayCircle, faPauseCircle} from '@fortawesome/free-regular-svg-icons'
 
 import {primary} from '../../commonStyles'
 
@@ -24,10 +24,11 @@ const estadoInicial = {
     time: Date.now(),
     posicaoAtual: 0,
     isLogado: true,
-    tempo: 10000,
+    tempo: 10,
+    isPlaying: true,
     //token: 'jioeggji4'
-    tokenClient: 'gSXh4YLQxDDGM6lja2vJB6FW4x8kPTRxRTSMtjCpMOISmzaqoM',
-    tokenEmployee: 'fR1fqCn8YNYQ0qtip7BIm50Pr6Dqit3hteepceBB1lsoM43YMd'    
+    //tokenClient: 'gSXh4YLQxDDGM6lja2vJB6FW4x8kPTRxRTSMtjCpMOISmzaqoM',
+    //tokenEmployee: 'fR1fqCn8YNYQ0qtip7BIm50Pr6Dqit3hteepceBB1lsoM43YMd'    
 }
 
 class PainelFumigacao extends Component {
@@ -38,102 +39,165 @@ class PainelFumigacao extends Component {
 
     filtro = (navios) =>  parseInt(navios.id_seaport) === parseInt(this.state.seaports[this.state.posicaoAtual].id) 
 
+    incrementar = async () => {
+        if(this.state.isPlaying){
+            if(this.state.tempo > 0){
+                await this.setState({tempo: this.state.tempo - 1})
+                //console.log(this.state.tempo)
+            }else{
+                await this.timer()
+                await this.setState({tempo: 10})
+            }
+        }
+    }
+
+    avancaPorto = async () => {
+        this.state.posicaoAtual >= (this.state.seaports.length - 1) ? await this.setState({posicaoAtual: 0, tempo: 10}) : await this.setState({posicaoAtual: this.state.posicaoAtual + 1, tempo: 10})
+    }
+
+    retrocedePorto = async () => {
+        this.state.posicaoAtual <= 0 ? await this.setState({posicaoAtual: this.state.seaports.length - 1, tempo: 10}) : await this.setState({posicaoAtual: this.state.posicaoAtual - 1, tempo: 10})
+    }
+
+    pausarOuContinuar = async () => {
+        await this.setState({isPlaying: !this.state.isPlaying})
+    }
+
     timer = async () => {
         if(this.state.posicaoAtual >= (this.state.seaports.length - 1)) { 
           this.setState({posicaoAtual: 0})
           window.location.reload()
-          //window.location.reload();  
-          //clearInterval(this.interval)
         }else{
             await this.setState({posicaoAtual: this.state.posicaoAtual + 1})
             await this.setState({naviosPortoAtual: this.state.ships.filter(this.filtro)})
         }
       }
 
-
       componentDidMount = async () => {
-          //
           await this.getSeaports()
-          await this.getShips()
-          //await this.getShipsRgf()
+          await this.getShipsRgf()
           await this.setState({naviosPortoAtual: this.state.ships.filter(this.filtro)})
           await this.setState({loading: false})
-          this.intervalId = setInterval(this.timer.bind(this), this.state.tempo)
+          this.intervalId = setInterval(() => this.incrementar(), 1000)
           //clearInterval(this.intervalId)
       }
       
       componentWillUnmount() {
-        clearInterval(this.interval);
+        clearInterval(this.intervalId);
       }
-
-          
+ 
+    /*  
     getSeaports = async () => {
-        await api.get(`seaportspainel`, {
-        }).then(
-            async response => { 
-                await this.setState({seaports: response.data})
-                //alert(JSON.stringify(this.state.seaports))
-            },
-            response => {this.erroApi(response)}
+        if(this.props.online){
+            await api.get(`seaportspainel`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            }).then(
+                async response => { 
+                    await this.setState({seaports: response.data})
+                    //alert(JSON.stringify(this.state.seaports))
+                },
+                async response => {this.erroApi(response)}
+            )
+        }else{
+            await apiLocal.get(`seaportspainel`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            }).then(
+                async response => { 
+                    await this.setState({seaports: response.data})
+                    //alert(JSON.stringify(this.state.seaports))
+                },
+                response => {this.erroApi(response)}
+            )
+        }
+    }
+    */
+
+    getSeaports = async () => {
+        await apiEmployee.post(`getSeaports.php`, {
+            token: this.props.token
+        }).then(async response => {
+            await this.setState({seaports: response.data})
+        },
+        response => {this.erroApi(response)}
         )
         await this.setState({loading: false}) 
     }
 
     getShipsRgf = async () => {
         await apiEmployee.post(`getShips.php`, {
-            token: this.state.tokenEmployee
+            token: this.props.token
         }).then(async response => {
             await this.setState({ships: response.data})
-            //alert(JSON.stringify(this.state.ships))
-            //this.setState({ships: response.data})
         },
         response => {this.erroApi(response)}
         )
         await this.setState({loading: false}) 
     }
-
+    
+    /*
     getShips = async () => {
-        await api.get(`shipspainel`, {
-        }).then(async response => {
-            await this.setState({ships: response.data})
-            //alert(JSON.stringify(this.state.ships))
-        },
-        response => {this.erroApi(response)}
-        )
+        if(this.props.online){
+            await api.get(`shipspainel`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                async response => {await this.setState({ships: response.data})},
+                async response => { await this.erroApi(response)}
+            )
+        }else{
+            await apiLocal.get(`shipspainel`, {
+                headers: {
+                    "Authorization": `bearer ${this.props.token}`
+                }
+            })
+            .then(
+                async response => {await this.setState({ships: response.data})},
+                async response => { await this.erroApi(response)}
+            )
+        }
         await this.setState({loading: false}) 
     }
+    */
 
     erroApi = async (res) => {
         await this.setState({isLogado: false})
         alert(PRECISA_LOGAR)
     }
 
-    avancaPorto = () => {
-        this.state.posicaoAtual >= (this.state.seaports.length - 1) ? this.setState({posicaoAtual: 0}) : this.setState({posicaoAtual: this.state.posicaoAtual + 1})
-    }
-
-    retrocedePorto = () => {
-        this.state.posicaoAtual <= 0 ? this.setState({posicaoAtual: this.state.seaports.length - 1}) : this.setState({posicaoAtual: this.state.posicaoAtual - 1})
-    }
-
-      renderSeaports(){
+    renderSeaports(){
         return(
             <div className="shopping-method">
                 
                 {!this.state.loading &&
-                <div className="container">
+                <div>
                     <div className="row">
                         <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">
                             <h1>Porto: {this.state.seaports[this.state.posicaoAtual].name}</h1>
                         </div>
+                        <div className="col-1"></div>
                         <div className="col-2 text-left">
-                        <FontAwesomeIcon color={primary} icon={faArrowAltCircleLeft} onClick={() => this.retrocedePorto()}/>
+                        <FontAwesomeIcon size="2x" color={primary} icon={faArrowAltCircleLeft} onClick={() => this.retrocedePorto()}/>
                         </div>
-                        <div className="col-8"></div>
+                        <div className="col-5"></div>
                         <div className="col-2 text-right">
-                            <FontAwesomeIcon color={primary} icon={faArrowAltCircleRight} onClick={() => this.avancaPorto()}/>
+                            <FontAwesomeIcon 
+                                size="2x" 
+                                color={primary} 
+                                icon={this.state.isPlaying ? faPauseCircle : faPlayCircle} 
+                                onClick={() => this.pausarOuContinuar()}/>
                         </div>
-                        <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                        <div className="col-1 text-right">
+                            <FontAwesomeIcon size="2x" color={primary} icon={faArrowAltCircleRight} onClick={() => this.avancaPorto()}/>
+                        </div>
+                        <div className="col-1"></div>
+                        <div className="col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1"></div>
+                        <div className="col-xl-10 col-lg-10 col-md-10 col-sm-10 col-10">
                             <div className="total-info">
                                 <div className="total-table">
                                     <table>
@@ -180,7 +244,8 @@ class PainelFumigacao extends Component {
                                     </table>
                                 </div>
                             </div>
-                        </div>                    
+                        </div>
+                        <div className="col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1"></div>                    
                     </div>
                 </div>
                 }
@@ -217,9 +282,10 @@ class PainelFumigacao extends Component {
     }
 }
 
-const mapStateToProps = ({user}) => {
+const mapStateToProps = ({user, servidor}) => {
     return{
-        token: user.token
+        token: user.token,
+        online: servidor.online
     }
 }
 

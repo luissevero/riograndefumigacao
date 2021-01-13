@@ -8,7 +8,7 @@ import {connect} from 'react-redux'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faSignOutAlt, faArrowLeft} from '@fortawesome/free-solid-svg-icons'
 
-class Header extends Component {
+class HeaderClient extends Component {
  
     state = {
         token: '',
@@ -18,64 +18,59 @@ class Header extends Component {
 
     fazerLogout = async () => {
         await this.props.onLogout()
-        alert('Logout  realizado!')
+        alert('Logout realizado!')
         await this.setState({redirect: true})
     }
 
     render(){
         return (
-            <div className="headerContainer">
+            <div className="row">
                 {this.state.redirect &&
-                    <Redirect to={'/admin'} />
+                    <Redirect to={'/client/login'} />
                 }
-                <div className="row">
+                
                     <div className="col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1 text-center">
                         {this.props.voltar &&
-                            <Link to={{pathname: `/admin/inicio`}}>
-                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="3x" />
+                            <Link to={{pathname: `/client/inicio`}}>
+                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="2x" />
                             </Link>
                         }
                         {this.props.voltarShips &&
                             <Link to={{pathname: `/admin/ships`}}>
-                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="3x" />
+                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="2x" />
                             </Link>
                         }
                         {this.props.voltarClient &&
                             <Link to={{pathname: `/admin/clients`}}>
-                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="3x" />
+                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="2x" />
                             </Link>
                         }
                         {this.props.voltarEmployee &&
                             <Link to={{pathname: `/admin/employees`}}>
-                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="3x" />
+                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="2x" />
                             </Link>
                         }
                         {this.props.voltarFeed &&
                             <Link to={{pathname: `/admin/feeds`}}>
-                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="3x" />
+                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="2x" />
                             </Link>
                         }
                         {this.props.voltarSeaport &&
                             <Link to={{pathname: `/admin/seaports`}}>
-                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="3x" />
-                            </Link>
-                        }
-                         {this.props.voltarStorage &&
-                            <Link to={{pathname: `/admin/storage`}}>
-                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="3x" />
+                                <FontAwesomeIcon cursor="pointer" icon={faArrowLeft} color="#17386b" size="2x" />
                             </Link>
                         }
                     </div>
-                    <div className="col-xl-10 col-lg-10 col-md-10 col-sm-10 col-10 text-center">
-                        <Link to={{pathname: `/admin/inicio`}}>
+                    <div className="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-8 text-center">
+                        <Link to={{pathname: `/client/inicio`}}>
                             <img className="img img-fluid thumbnail" src={Logo} style={{alignItems: 'center', justifyContent: 'center'}}/>
                         </Link>
                     </div>
                     <div className="col-xl-1 col-lg-1 col-md-1 col-sm-1 col-1 text-center">
-                        <FontAwesomeIcon cursor="pointer" onClick={() => this.fazerLogout()} icon={faSignOutAlt} color="#17386b" size="3x">
-                        </FontAwesomeIcon>
+                        <FontAwesomeIcon cursor="pointer" onClick={() => this.fazerLogout()} icon={faSignOutAlt} color="#17386b" size="2x" />
+                    
                     </div>
-                </div>
+                
             </div>
         )
     }
@@ -87,4 +82,4 @@ const mapDispatchToProps = dispatch => {
     }
 }
 
-export default connect(null, mapDispatchToProps)(Header)
+export default connect(null, mapDispatchToProps)(HeaderClient)

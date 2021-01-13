@@ -3,14 +3,15 @@ import './styles.css'
 import {Formik, Field, Form} from 'formik'
 import Logo from '../../img/logos/rgf.png'
 import {Link, Redirect} from 'react-router-dom'
-import api from '../../services/api'
+import {apiClient} from '../../services/apirgfumiga'
 import axios from 'axios'
 import {server, showError, showSuccess} from '../../common'
 import {connect} from 'react-redux'
 import {login} from '../../store/actions/user'
+import md5 from 'md5'
 
 const estadoInicial = {
-    login: 'agrex',
+    login: 'adm',
     senha: 'rgf10',
     login2: '',
     nome: '',
@@ -28,6 +29,7 @@ class Login extends Component {
 
     }
 
+    /*
     signin = async () => {
         
         try{
@@ -52,28 +54,47 @@ class Login extends Component {
             showError(e)
         }     
     }
-
+    */
+   signin = async() => {
+       try{          
+           await apiClient.post(`login.php`, {
+               username: this.state.login,
+               password: '752733790960c17265c299f8247681ff'
+               //password: md5(this.state.senha)
+           }).then(
+               async res => {
+                    if(res.data == 'false'){
+                        alert('Usuário ou senha incorretos!')
+                    }else{
+                        alert('Login realizado!')
+                        await this.setState({token: res.data})
+                        await this.props.onLogin({...this.state})
+                        await this.setState({redirect: true})
+                       
+                    }
+                },
+               async res => alert(res.data) 
+           )
+       }catch(e){
+           alert(e)
+       }
+   }
 
     render(){
         return (
-            <section className="latest-products spad">
+            <div className='row'>
                 
                 {this.state.redirect &&
-                    <Redirect to={'/admin/inicio'} />
+                    <Redirect to={'/client/inicio'} />
                 }
-
-                <div className="container">
-                    <div className="product-filter">
-                        <div className="row">
-                            <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">
-                                <img src={Logo} />
-                                <div className="section-title">
-                                    <h2>Rio Grande Fumigação</h2>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="contender">
+                <div className="col-2"></div>
+                <div className="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-8 text-center" id='logoRGF'>
+                    <img src={Logo} />
+                </div>
+                <div className="col-2"></div>
+                        
+                <div className="col-2"></div>
+                <div className="col-8">
 
                         <Formik 
                             initialValues={{
@@ -93,18 +114,20 @@ class Login extends Component {
                                 </div>
                                 <div className="row">
                                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">
-                                        <Field value={this.state.senha} onChange={e => { this.setState({senha: e.currentTarget.value})}} id="senha" name="senha" type="password" placeholder="Senha" />
+                                        <Field value={this.state.senha} onChange={e => { this.setState({senha: e.currentTarget.value})}} id="senha" name="senha" type="password" placeholder="Password" />
                                     </div>
                                 </div>
                                 <div className="row"></div>
                                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-right">
-                                        <button type="submit" style={{backgroundColor: '#eee', opacity: 0.9}} >Entrar</button>
+                                        <button type="submit" style={{backgroundColor: '#eee', opacity: 0.9}} >Login</button>
                                     </div>
                             </Form>
                         </Formik>
-                    </div>                
+                    </div>
+                    <div className="col-2"></div>                
                 </div>
-        </section> 
+                
+        
         )
     }
 }

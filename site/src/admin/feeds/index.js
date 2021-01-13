@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import './styles.css'
-import {api} from '../../services/api'
+import {api, apiLocal} from '../../services/api'
 import {apiEmployee} from '../../services/apirgfumiga'
 import Header from '../../components/header'
 import Skeleton from '../../components/skeleton'
@@ -26,6 +26,7 @@ class Feeds extends Component {
     componentDidMount = () => {
         //this.getFeeds()
         this.getShips()
+        this.setState({loading: false})
     }
 
     inserirPorto = async () => {
@@ -45,43 +46,26 @@ class Feeds extends Component {
         await this.setState({name: ''})
     }
 
-    getFeeds = async () => {
-        await api.get(`feed`, {
-            headers: {
-                "Authorization": `bearer ${this.props.token}`
-            }
-        }).then(
-            response => this.setState({feeds: response.data}), 
-            response => this.erroApi(response)
-            )
-        await this.setState({loading: false}) 
-    }
-
     getShips = async () => {
-        await api.get(`ships`, {
-            headers: {
-                "Authorization": `bearer ${this.props.token}`
-            }
-        }).then(
-            response => this.setState({ships: response.data}), 
-            response => this.erroApi(response)
-            )
-        await this.setState({loading: false}) 
+        await apiEmployee.post(`getShips.php`, {
+            token: this.props.token
+        })
+        .then(
+            async response => { await this.setState({ships: response.data})},
+            async response => {this.erroApi(response)}
+        )
     }
-
-    getFeeds
 
     getFeedsPerShip = async (ship) => {
-        await api.get(`feedpership/${ship}`, {
-            headers: {
-                "Authorization": `bearer ${this.props.token}`
-            }
-        }).then(
-            async response => {
-                await this.setState({feeds: []})
-                await this.setState({feeds: response.data})}, 
-            response => this.erroApi(response)
-            )
+        await this.setState({loading: true})
+        await apiEmployee.post(`getFeed.php`, {
+            token: this.props.token,
+            id_ship: ship
+        })
+        .then(
+            async response => { await this.setState({feeds: response.data})},
+            async response => {this.erroApi(response)}
+        )
         await this.setState({loading: false}) 
     }
 
@@ -96,7 +80,7 @@ class Feeds extends Component {
         return (
             <div>
                 {!this.state.isLogado &&
-                    <Redirect to={'/client/login'} />
+                    <Redirect to={'/admin'} />
                 }
 
                 {this.state.loading &&
@@ -107,7 +91,7 @@ class Feeds extends Component {
                 <div>    
                 <section className="page-add">
                     <Header voltar/>
-                    <div className="container">
+                    <div>
                         <div className="row">
                             <div className="col-lg-12">
                                 <div className="page-breadcrumb">
@@ -121,13 +105,13 @@ class Feeds extends Component {
                 </section>
 
                 <div className="contact-section">
-                    <div className="container">
+                    
                         <div className="row">
                             <div className="col-lg-12 text-right">
                                 <Link to={{pathname: `/admin/addfeed/0`}}><button style={{backgroundColor: '#eee', opacity: 0.9} } > Adicionar</button></Link>
                             </div>                            
                         </div>
-                    </div>
+                   
                 </div>
 
                 <div className="col-12 text-center">
@@ -196,9 +180,10 @@ class Feeds extends Component {
     }
 }
 
-const mapStateToProps = ({user}) => {
+const mapStateToProps = ({user, servidor}) => {
     return{
-        token: user.token
+        token: user.token,
+        online: servidor.online
     }
 }
 
